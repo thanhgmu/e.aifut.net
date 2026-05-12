@@ -34,23 +34,38 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        $numericExpression = static function (string $column): string {
+            return DB::getDriverName() === 'pgsql'
+                ? "COALESCE(SUM(CAST({$column} AS NUMERIC)), 0) as aggregate"
+                : "COALESCE(SUM({$column}), 0) as aggregate";
+        };
+
+        $sumColumn = static function (string $table, string $column, ?callable $scope = null) use ($numericExpression): float {
+            $query = DB::table($table);
+            if ($scope !== null) {
+                $scope($query);
+            }
+
+            return (float) ($query->selectRaw($numericExpression($column))->value('aggregate') ?? 0);
+        };
+
         // Count existing users
         $totaluserCount = DB::table('users')->count();
-        $totalWordCount = DB::table('user_openai')->where('credits', '!=', 1)->sum('credits');
-        $totalImageCount = DB::table('user_openai')->where('credits', '=', 1)->sum('credits');
-        $totalSalesCount = DB::table('user_orders')->sum('price');
+        $totalWordCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '!=', 1));
+        $totalImageCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '=', 1));
+        $totalSalesCount = $sumColumn('user_orders', 'price');
 
         // Count users created this week
         $thisWeekUserCount = DB::table('users')->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count();
-        $thisWeekWordCount = DB::table('user_openai')->where('credits', '!=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('credits');
-        $thisWeekImageCount = DB::table('user_openai')->where('credits', '=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('credits');
-        $thisWeekSales = DB::table('user_orders')->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('price');
+        $thisWeekWordCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '!=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]));
+        $thisWeekImageCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]));
+        $thisWeekSales = $sumColumn('user_orders', 'price', static fn ($query) => $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]));
 
         // Count users created last week
         $lastWeekUserCount = DB::table('users')->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()])->count();
-        $lastWeekWordCount = DB::table('user_openai')->where('credits', '!=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()])->sum('credits');
-        $lastWeekImageCount = DB::table('user_openai')->where('credits', '=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()])->sum('credits');
-        $lastWeekSales = DB::table('user_orders')->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()])->sum('price');
+        $lastWeekWordCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '!=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()]));
+        $lastWeekImageCount = $sumColumn('user_openai', 'credits', static fn ($query) => $query->where('credits', '=', 1)->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()]));
+        $lastWeekSales = $sumColumn('user_orders', 'price', static fn ($query) => $query->whereBetween('created_at', [Carbon::now()->startOfWeek()->subWeek(), Carbon::now()->endOfWeek()->subWeek()]));
 
         // Set the initial value in settings table
         DB::table('usage')->updateOrInsert(

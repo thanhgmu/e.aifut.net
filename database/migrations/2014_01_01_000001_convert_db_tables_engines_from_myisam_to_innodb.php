@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             $this->convertMyISAMToInnoDB();
         }
     }
