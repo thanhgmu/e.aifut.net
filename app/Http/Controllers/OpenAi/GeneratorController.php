@@ -60,14 +60,17 @@ class GeneratorController extends Controller
 
     public function __construct()
     {
-        $this->settings = Setting::getCache();
-        $this->settings_two = SettingTwo::getCache();
+        $this->settings = Setting::getCache() ?? new Setting();
+        $this->settings_two = SettingTwo::getCache() ?? new SettingTwo();
         $this->middleware(function (Request $request, $next) {
             ApiHelper::setOpenAiKey($this->settings);
 
             return $next($request);
         });
-        $this->streamService = new StreamService($this->settings, $this->settings_two);
+
+        if (! app()->runningInConsole()) {
+            $this->streamService = new StreamService($this->settings, $this->settings_two);
+        }
     }
 
     public function realtime(): View

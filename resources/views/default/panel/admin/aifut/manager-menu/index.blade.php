@@ -14,6 +14,7 @@
             <div class="flex flex-wrap gap-2">
                 <x-button href="{{ route('dashboard.admin.aifut.manager-menu.items.create') }}">{{ __('Create Menu Item') }}</x-button>
                 <x-button href="{{ route('dashboard.admin.aifut.manager-menu.rules.index') }}" variant="secondary">{{ __('Manage Rules') }}</x-button>
+                <x-button href="{{ route('dashboard.admin.aifut.tenant-bindings.index') }}" variant="secondary">{{ __('Tenant Bindings') }}</x-button>
             </div>
         </div>
 

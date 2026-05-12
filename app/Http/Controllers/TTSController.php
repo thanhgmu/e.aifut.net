@@ -52,9 +52,9 @@ class TTSController extends Controller
      */
     public function __construct()
     {
-        $this->settings = Setting::getCache();
-        $this->settingsTwo = SettingTwo::getCache();
-        $this->ai = OpenAIGenerator::where('slug', 'ai_voiceover')->first();
+        $this->settings = Setting::getCache() ?? new Setting();
+        $this->settingsTwo = SettingTwo::getCache() ?? new SettingTwo();
+        $this->ai = OpenAIGenerator::where('slug', 'ai_voiceover')->first() ?? new OpenAIGenerator();
     }
 
     /**

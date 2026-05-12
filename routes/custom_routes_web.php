@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Aifut\ManagerMenuController;
 use App\Http\Controllers\Admin\Aifut\ManagerMenuRuleController;
+use App\Http\Controllers\Admin\Aifut\TenantBindingController;
 use App\Http\Controllers\Aifut\AifutBridgeController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,4 +37,10 @@ Route::middleware(['auth', 'updateUserActivity', 'admin'])
         Route::post('manager-menu/rules', [ManagerMenuRuleController::class, 'store'])->name('manager-menu.rules.store');
         Route::get('manager-menu/rules/{rule}/edit', [ManagerMenuRuleController::class, 'edit'])->name('manager-menu.rules.edit');
         Route::put('manager-menu/rules/{rule}', [ManagerMenuRuleController::class, 'update'])->name('manager-menu.rules.update');
+
+        Route::get('tenant-bindings', [TenantBindingController::class, 'index'])->name('tenant-bindings.index');
+        Route::get('tenant-bindings/create', [TenantBindingController::class, 'create'])->name('tenant-bindings.create');
+        Route::post('tenant-bindings', [TenantBindingController::class, 'store'])->name('tenant-bindings.store');
+        Route::get('tenant-bindings/{tenantBinding}/edit', [TenantBindingController::class, 'edit'])->name('tenant-bindings.edit');
+        Route::put('tenant-bindings/{tenantBinding}', [TenantBindingController::class, 'update'])->name('tenant-bindings.update');
     });
